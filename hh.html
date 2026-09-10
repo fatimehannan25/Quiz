@@ -1,0 +1,708 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz App</title>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #d373ab, #9c5eda);
+    }
+
+    .card {
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      width: 320px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    h1 {
+      margin-bottom: 15px;
+    }
+
+    h3 {
+      margin-bottom: 20px;
+    }
+
+    p {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.03);
+    }
+
+    /* زر البداية */
+
+    .start {
+      background: #333;
+      color: #fff;
+    }
+
+    /* الاختيارات */
+
+    .answer {
+      background: #f5f5f5;
+    }
+
+    .answer:nth-of-type(1) {
+      border-left: 5px solid #3498db;
+    }
+
+    .answer:nth-of-type(2) {
+      border-left: 5px solid #d078f3;
+    }
+
+    .answer:nth-of-type(3) {
+      border-left: 5px solid #ec9344;
+    }
+
+    .answer:nth-of-type(4) {
+      border-left: 5px solid #2ecc71;
+    }
+
+    /* الإجابة الصحيحة */
+
+    .correct {
+      background: #2ecc71;
+      color: #fff;
+    }
+
+    /* الإجابة الخاطئة */
+
+    .wrong {
+      background: #e74c3c;
+      color: #fff;
+    }
+
+    /* الرسالة */
+
+    .message {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+
+    .success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    /* زر تابع */
+
+    #continue {
+      background: #333;
+      color: #fff;
+      margin-top: 10px;
+    }
+
+    /* زر إعادة المحاولة */
+
+    #retry {
+      background: #4e61b6;
+      color: #fff;
+      margin-top: 10px;
+    }
+
+    /* النتيجة */
+
+    .result-score {
+      font-size: 35px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+
+    .result-item {
+      background: #f5f5f5;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+    }
+
+    .play-again {
+      background: #5870d8;
+      color: #fff;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+
+  <!-- ===================== -->
+  <!-- الصفحة الرئيسية -->
+  <!-- ===================== -->
+
+  <div class="card" id="home">
+
+    <h1>🧠 Test Yourself</h1>
+
+    <p>
+      اختبر معلوماتك من خلال مجموعة من الأسئلة،
+      واختر الإجابة الصحيحة لكل سؤال.
+    </p>
+
+    <button class="start" id="start">
+      Get Started 🚀
+    </button>
+
+  </div>
+
+
+  <!-- ===================== -->
+  <!-- صفحة الأسئلة -->
+  <!-- ===================== -->
+
+  <div class="card hidden" id="quiz">
+
+    <h3 id="question"></h3>
+
+    <div id="answers"></div>
+
+    <!-- رسالة الإجابة -->
+
+    <div id="message" class="hidden"></div>
+
+    <!-- زر إعادة المحاولة -->
+
+    <button id="retry" class="hidden">
+      إعادة المحاولة 🔄
+    </button>
+
+    <!-- زر الانتقال للسؤال التالي -->
+
+    <button id="continue" class="hidden">
+      تابع ➜
+    </button>
+
+  </div>
+
+
+  <!-- ===================== -->
+  <!-- صفحة النتيجة -->
+  <!-- ===================== -->
+
+  <div class="card hidden" id="result">
+
+    <h1>🎉 انتهى الاختبار!</h1>
+
+    <div class="result-score">
+      <span id="finalScore"></span>
+    </div>
+
+    <div class="result-item">
+      ✅ الإجابات الصحيحة:
+      <strong id="correctAnswers"></strong>
+    </div>
+
+    <div class="result-item">
+      ❌ الإجابات الخاطئة:
+      <strong id="wrongAnswers"></strong>
+    </div>
+
+    <div class="result-item">
+      📊 النسبة:
+      <strong id="percentage"></strong>
+    </div>
+
+    <button class="play-again" id="playAgain">
+      إعادة الاختبار 🔄
+    </button>
+
+  </div>
+
+
+  <script>
+
+    /* =========================
+       الأسئلة
+       object يحتوي على السؤال، الإجابات، والإجابة الصحيحة  وهي عبارة عن
+    ========================= */
+
+    const questions = [
+
+      {
+        q: "ما هي اللغة المستخدمة لبناء هيكل صفحة الويب ؟",
+        answers: ["CSS", "HTML", "Javascript", "Python"],
+        correct: 1
+      },
+
+      {
+        q: "أي وسم يستخدم لانشاء رابط ؟",
+        answers: ["<img>", "<a>", "<link>", "<url>"],
+        correct: 1
+      },
+
+      {
+        q: "أي وسم يستخدم لاضافة صورة ؟",
+        answers: [
+          "<picture>",
+          "<image>",
+          "<img>",
+          "<src>"
+        ],
+        correct: 2
+      },
+
+      {
+        q: "اي وسم يستخددم لانشاء قائمة غير مرتبة؟",
+        answers: [
+          "<ol>",
+          "<li>",
+          "<ul>",
+          "<list>"
+        ],
+        correct: 2
+      },
+
+      {
+        q: "اي وسم يستخدم لانشاء عنوان رئيسي ؟",
+        answers: [
+          "<h1>",
+          "<head>",
+          "<title>",
+          "<heder>"
+        ],
+        correct: 0
+      },
+
+      {
+        q:"ما وظيفة CSS?",
+        answers: [
+          "انشاء قاعدة الويب",
+          "تصميم وتنسيق صفحةالويب",
+          "تشغيل الخادم",
+          "كتابة منطق البرنامج"
+        ],
+        correct: 1
+      },
+
+      {
+        q: "اي  خاصية تستخدم لغيير لون النص ؟",
+        answers: [
+          "backgrounde",
+          "font-color",
+          "Color",
+          "text-color"
+        ],
+        correct: 2
+      },
+
+      {
+        q: "اي خاصية تستخدم لتغيير لون خلفية العنصر ؟",
+        answers: [
+          "background-color",
+          "bg-color",
+          "Color",
+          "text-color"
+        ],
+        correct: 0
+      },
+      
+      {
+        q: "اي خاصية تستخدم لتغيير حجم الخط ؟",
+        answers: [
+          "text-size",
+          "font-size",
+          "font-style",
+          "size"
+        ],
+        correct: 1
+      },
+
+      {
+        q: "اي خاصية تستخدم لجعل العنصر Flexbox ?",
+        answers: [
+          "position: flex",
+          "display: flex",
+          "flex : display ",
+          "layout: flex"
+        ],
+        correct: 1
+      },
+           
+      {
+        q: "ما وظيفة javascript?",
+        answers: [
+          "تنسيق الصفحة فقط",
+          "بناء هيكل الصفحة فقط",
+          "اضافة التفاعل والسلوك للصفحة",
+          "انشاء الصور"
+        ],
+        correct: 2
+      },
+
+      {
+        q: "اي كلمة تستخدم لتعريف متغير يمكن تغيير قيمته ؟",
+        answers: [
+          "const",
+          "let",
+          "varname",
+          "change"
+        ],
+        correct: 1
+      },
+
+      {
+        q: "اي كلمة تستخدم لاختيار عنصر بواسطة id?",
+        answers: [
+          "getElementById()",
+          "getElement()",
+          "queryId()",
+          "selectId()"
+        ],
+        correct: 0
+      },
+
+      {
+        q: "اي رمز يستخدم للمقارنة الصارمة",
+        answers: [
+          "=",
+          "==",
+          "===",
+          "=!"
+        ],
+        correct: 2
+      },
+           
+      {
+        q: "اي دالة تستخدم لطباعة شيء في console?",
+        answers: [
+          "console.write()",
+          "print()",
+          "console.log()",
+          "show()"
+        ],
+        correct: 2
+      }
+    ];
+
+
+    /* =========================
+       المتغيرات
+    ========================= */
+
+    let current = 0;/*اي سؤال نحن فيه حاليا*/
+
+    let score = 0;/*هادا لحفظ عدد الاجابات الصحيحة*/
+
+    let wrongAnswersCount = 0;/**/
+
+
+    /* =========================
+       عناصر الصفحات
+    ========================= */
+
+    const home = document.getElementById("home");/*يمسك صفحة البداية*/
+
+    const quiz = document.getElementById("quiz");/*يمسك صفحة الاختبار*/
+
+    const result = document.getElementById("result");/*يمسك صفحة النتيجة*/
+
+
+    /* عناصر السؤال */
+
+    const questionElement =
+      document.getElementById("question");
+
+    const answersElement =
+      document.getElementById("answers");
+
+
+    /* عناصر الرسالة */
+
+    const message =
+      document.getElementById("message");
+
+    const retryButton =
+      document.getElementById("retry");
+
+    const continueButton =
+      document.getElementById("continue");
+
+
+    /* عناصر النتيجة */
+
+    const finalScore =
+      document.getElementById("finalScore");
+
+    const correctAnswers =
+      document.getElementById("correctAnswers");
+
+    const wrongAnswers =
+      document.getElementById("wrongAnswers");
+
+    const percentage =
+      document.getElementById("percentage");
+
+
+    /* الأزرار */
+
+    const startButton =
+      document.getElementById("start");
+
+    const playAgainButton =
+      document.getElementById("playAgain");
+
+
+    /* =========================
+     بدء الاختبار
+     يعني لما المستخدم يضغط على زر ابدء نفذ الاوامر الموجودة صمن الدالة
+    ========================= */
+
+    startButton.onclick = () => {
+/*هون منقول انه ضيف كلاس اسمه hidden الى الصفحة الرئيسية وبما انه بالcssمنقول اخفي الصفحة */
+      home.classList.add("hidden");
+
+      quiz.classList.remove("hidden");/*فا هون الصفحة الرئيسية مخفية اي نزيل منها لhidden*/
+
+      current = 0;/*فا هون  بصير يبلش من اول سؤال */
+
+      score = 0;
+
+      wrongAnswersCount = 0;
+
+      load();
+
+    };
+
+
+    /* =========================
+       تحميل السؤال
+    ========================= */
+
+    function load() {/*وظيفة هي الدالة انه اعرض لي السؤال الحالي وانشاء ازرار الاجابة*/
+
+      answersElement.innerHTML = "";/*انتقل للسؤال الجديد*/
+
+      message.classList.add("hidden");/*اخفاء سؤال السابق مع زر الاعادة مع زر المتابعة */
+
+      retryButton.classList.add("hidden");
+
+      continueButton.classList.add("hidden");
+
+
+      const q = questions[current];/*متغير لحتى احصل على السؤال الاول او بالاحرى السوال الحالي*/
+
+      questionElement.textContent = q.q;/*يعني حطلي السؤال على الصفحة */
+
+/*q.qطبعا للتوضيح  هادا يلي بتحتوي على نص السؤال*/
+      q.answers.forEach((ans, i) => {
+/*هي يعني مر على كل الاجابات*/
+        const btn = document.createElement("button");/*انشات زر للاجابة*/
+
+        btn.textContent = ans;/*حطلي نص الاجابة بالزر */
+
+        btn.classList.add("answer");/*عم نعطي كلاس answerلزر الاجابة لحتى ياخد تنسيقه بال css*/
+
+        btn.onclick = () => selectAnswer(btn, i);/*هون وقت الضغط على زر الاجابة عم نروح شوق الاجابة ورقم الاجابة الصحيحة نمررله كا بارامتر*/
+
+        answersElement.appendChild(btn);/*اظهر النتيجة*/
+
+      });
+
+    }
+
+
+    /* =========================
+       اختيار الإجابة
+    ========================= */
+
+    function selectAnswer(btn, index) {
+
+      const correctIndex =
+        questions[current].correct;/*متغير نخزن فيه الاجابة الحالية مع الاجابة الصحيحة*/
+
+      const buttons =
+        answersElement.querySelectorAll("button");
+
+
+      /* منع الضغط على الإجابات */
+
+      buttons.forEach(b => {
+
+        b.disabled = true;
+
+      });
+
+
+      /* =====================
+         الإجابة الصحيحة
+      ===================== */
+
+      if (index === correctIndex) {
+
+        btn.classList.add("correct");
+
+        score++;
+
+
+        message.textContent =
+          "✅ إجابة صحيحة! أحسنت 🎉 تابع للسؤال التالي.";
+
+        message.className =
+          "message success";
+
+
+        /* إظهار زر تابع */
+
+        continueButton.classList.remove("hidden");
+
+      }
+
+
+      /* =====================
+         الإجابة الخاطئة
+      ===================== */
+
+      else {
+
+        btn.classList.add("wrong");
+
+        wrongAnswersCount++;
+
+
+        message.textContent =
+          "❌ إجابة خاطئة! حاول مرة ثانية 🔄";
+
+        message.className =
+          "message error";
+
+
+        /* إظهار زر إعادة المحاولة */
+
+        retryButton.classList.remove("hidden");
+
+      }
+
+    }
+
+
+    /* =========================
+       إعادة المحاولة
+    ========================= */
+
+    retryButton.onclick = () => {
+
+      load();
+
+    };
+
+
+    /* =========================
+       الانتقال للسؤال التالي
+    ========================= */
+
+    continueButton.onclick = () => {
+
+      current++;
+
+
+      if (current < questions.length) {/*انه روح شوف عدد الاسئلة هل هو اصغر من  رقم السؤال الحالي */
+
+        load();
+
+      }
+
+      else {
+
+        showResult();
+
+      }
+
+    };
+
+
+    /* =========================
+       عرض النتيجة
+    ========================= */
+
+    function showResult() {
+
+      quiz.classList.add("hidden");
+
+      result.classList.remove("hidden");
+
+
+      const total = questions.length;/*متغير جديد اسند له عدد الاسئلة */
+
+      const wrong = total - score;/*هون كمان متغير جديد  لحساب عدد الاجابات الخاطئة طرحها من المجموع الكل */
+
+      const percent =
+        Math.round((score / total) * 100);/*متغير لحتى يحسب المستوى بالنسبة المئوية*/
+
+
+      finalScore.textContent =
+        score + " / " + total;/*هون عم قول اظهر لي المجموع الكلي للاسئلة وعدد الاجابات الخاطئة في الصفحة النتيجة */
+
+
+      correctAnswers.textContent =
+        score;
+
+
+      wrongAnswers.textContent =
+        wrong;
+
+
+      percentage.textContent =
+        percent + "%";
+
+    }
+
+
+    /* =========================
+       إعادة الاختبار
+    ========================= */
+
+    playAgainButton.onclick = () => {
+
+      result.classList.add("hidden");
+
+      quiz.classList.remove("hidden");
+
+      current = 0;
+
+      score = 0;
+
+      wrongAnswersCount = 0;
+
+      load();
+
+    };
+
+  </script>
+
+</body>
+</html>
